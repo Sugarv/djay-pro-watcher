@@ -1,9 +1,11 @@
 # djay Pro Watcher
 
 [djay Pro](https://www.algoriddim.com/apps) has brought streaming from Spotify back in [version 5.4.3](https://www.algoriddim.com/djay-pro-mac/releasenotes), but it currently does not suggest similar tracks ("Match" feature). 
-This Python application monitors **djay Pro's** "Now Playing" track and suggests similar songs using the **Last.fm API**. It works only on MacOS. 
+This Python application, built as an icon in your Mac's menu bar, monitors **djay Pro's** "Now Playing" track and suggests similar songs using the **Last.fm API**. It works only on MacOS. 
 
 The dist/ folder contains the compiled application only for Apple Silicon (M1/M2/M3/M4) (See [BUILD.md](BUILD.md) for more information).
+
+![DjayProWatcher](media/djay_pro_watcher.png)
 
 ## Features
 - **Real-time Monitoring**: Automatically detects track changes in djay Pro.
