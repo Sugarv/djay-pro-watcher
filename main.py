@@ -4,13 +4,13 @@ import os
 import threading
 import subprocess
 import rumps
+import keyring
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
+# Load environment variables from .env file (fallback for dev)
 load_dotenv()
 
 # --- CONFIGURATION ---
-LASTFM_API_KEY = os.getenv("LASTFM_API_KEY")
 FILE_PATH = os.path.expanduser("~/Music/djay/djay Media Library.djayMediaLibrary/NowPlaying.txt")
 
 EMOJI_IDLE = "🎧"
@@ -26,9 +26,13 @@ class DjayProWatcherApp(rumps.App):
         self.menu_items = {}
         self.pending_suggestions = None
 
+        # Load API Key (either from Keychain or .env fallback)
+        self.api_key = keyring.get_password("DjayProWatcher", "lastfm_api_key") or os.getenv("LASTFM_API_KEY")
+
         # Setup standard buttons
         self.toggle_btn = rumps.MenuItem("Start Monitoring", callback=self.toggle_monitoring)
         self.statusItem = rumps.MenuItem("Now Playing: Not Monitoring")
+        self.set_key_btn = rumps.MenuItem("Update API Key", callback=self.prompt_api_key)
         self.about_btn = rumps.MenuItem("About", callback=self.show_about)
         self.quit_btn = rumps.MenuItem("Quit", callback=rumps.quit_application)
         
@@ -63,6 +67,7 @@ class DjayProWatcherApp(rumps.App):
                 self.menu.add(rumps.MenuItem(track_text, callback=callback))
                 
         self.menu.add(rumps.separator)
+        self.menu.add(self.set_key_btn)
         self.menu.add(self.about_btn)
         self.menu.add(self.quit_btn)
 
@@ -75,8 +80,29 @@ class DjayProWatcherApp(rumps.App):
         elif not is_error and self.title == EMOJI_ERROR:
             self.title = EMOJI_IDLE
 
+    def prompt_api_key(self, sender=None):
+        window = rumps.Window(
+            title="LastFM API Key Required",
+            message="Please enter your LastFM API key.\nYou can get one at https://www.last.fm/api",
+            default_text=self.api_key if self.api_key else "",
+            cancel=True
+        )
+        response = window.run()
+        if response.clicked: # User clicked OK
+            key = response.text.strip()
+            if key:
+                self.api_key = key
+                keyring.set_password("DjayProWatcher", "lastfm_api_key", key)
+                rumps.notification(title="DjayProWatcher", subtitle="Configuration Saved", message="API Key has been securely stored in Keychain.")
+
     @rumps.clicked("Start Monitoring")
     def toggle_monitoring(self, sender):
+        if not self.api_key:
+            self.prompt_api_key()
+            if not self.api_key:
+                self.update_status("Error: API Key required", is_error=True)
+                return
+
         if not self.monitoring:
             if not os.path.exists(os.path.dirname(FILE_PATH)):
                 self.update_status(f"Error: Path not found {os.path.dirname(FILE_PATH)}", is_error=True)
@@ -152,7 +178,7 @@ class DjayProWatcherApp(rumps.App):
                 "method": "track.getSimilar",
                 "artist": artist,
                 "track": title,
-                "api_key": LASTFM_API_KEY,
+                "api_key": self.api_key,
                 "format": "json",
                 "limit": 15
             }
