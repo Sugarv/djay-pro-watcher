@@ -6,8 +6,8 @@ This Python application monitors **djay Pro's** "Now Playing" track and suggests
 ## Features
 - **Real-time Monitoring**: Automatically detects track changes in djay Pro.
 - **Similar Tracks**: Fetched from Last.fm to help you find your next mix.
-- **Copy to Clipboard**: Quick access to song names via the `📋` icon.
-- **Dark Mode UI**: Minimalist Tkinter interface.
+- **Copy to Clipboard**: Click any suggested song in the menu to copy it to your clipboard.
+- **macOS Menu Bar UI**: A native, unobtrusive app that lives in your status bar.
 
 ## Prerequisites
 - **Last.fm API Key**: [Get one here](https://www.last.fm/api/account/create).
